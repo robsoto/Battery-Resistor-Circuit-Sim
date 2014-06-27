@@ -1,6 +1,6 @@
 var R = Raphael(0,0,1000,1000);
 var battery = R.rect(300,350,300,125);
-var charge = R.circle(600,405,10);
+//var charge = R.circle(600,405,10);
 /*var cathodeX = battery.attr('x');
 var cathodeY = battery.attr('y') + (battery.attr('height') / 2);
 var anodeX = battery.attr('x') + battery.attr('width');
@@ -11,22 +11,27 @@ var chargePath = R.path('M600,405H825V180H75V405H300');
 
 chargePath.attr({opacity:0}); 
 
-/*var animation = setInterval(function() {
-		charge = R.circle(600,405,10);
-		animateCharge(charge);
-	}, 500); //change interval to be based on current
-*/
+function animateCharge(elem, dist) {
+	setInterval(function() {
+		if (chargePath.getTotalLength() <= dist) { //remove elem and exit function when path is completed
+			elem.remove();
+			return; 
+		}
+		var pos = chargePath.getPointAtLength(dist);  
+		elem.attr({cx: pos.x, cy: pos.y});  
 
-var animation = setInterval(function(){
-	//console.log('go');
-	animateCharge(charge)},20);
-var counter = 0;
-function animateCharge(elem) {
-	if (chargePath.getTotalLength() <= counter) { 
-        clearInterval(animation);
-    }
-    var pos = chargePath.getPointAtLength(counter);  
-    elem.attr({cx: pos.x, cy: pos.y});  
-    
-    counter++; 
+		dist++; 
+	}, 5);
 }
+
+//TO DO: MODIFY SO THAT INTERVAL IS BASED ON CURRENT
+function runBattery() {
+	var newCharge = R.circle(600,405,10); 
+	var dist = 0; //dist starts at 0 for each new element
+	setInterval(function() {
+		newCharge = R.circle(600,405,10); 
+		animateCharge(newCharge, dist);
+	}, 500);
+}
+
+runBattery();
