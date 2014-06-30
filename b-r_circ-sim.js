@@ -16,7 +16,14 @@ resistor.attr({fill:'orange'})
 //Creating voltage and resistance sliders
 var resistance = new slider(R, 900, 100, 400, 50, 0.2, 10, 'Resistance');
 var voltage = new slider(R, 900, 200, 400, 50, -12, 12, 'Voltage');
-var current = voltage.val / resistance.val ;
+var current = voltage.val / resistance.val;
+
+//Recalculating current on a time interval for now
+//TO DO: REVISIT TO GET THIS WORKING ON CLICK/DRAG
+setInterval(function() {
+	current = voltage.val / resistance.val;
+	console.log(current);
+}, 100);
 
 //animation of moving charges
 function animateCharge(elem, dist) {
@@ -30,7 +37,7 @@ function animateCharge(elem, dist) {
 		elem.attr({cx: pos.x, cy: pos.y});  
 
 		dist++; 
-	}, 5);
+	}, 100/current);
 }
 
 //TO DO: MODIFY SO THAT INTERVAL IS BASED ON CURRENT
@@ -46,4 +53,5 @@ function runBattery() {
 }
 
 //test run battery
-runBattery();
+//runBattery();
+
