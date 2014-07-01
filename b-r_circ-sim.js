@@ -3,16 +3,20 @@
 var R = Raphael(0,0,1500,1500); //Raphael canvas
 
 //circuit skeleton
+var batteryWidth = 300
 var battery = R.rect(300,350,300,125);
 var resistor = R.rect(275,135,350,90); 
 var chargeRadius = 10;
 var resColor = 'rgb(255,155,0)';
 var rgb = resColor.match(/\d+/g);
-var rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
-console.log(rgbStr);
+//console.log(rgbStr);
 var innerPath = R.path('M600,380H800V205H625V225H275V205H100V380H300');
 var outerPath = R.path('M600,430H850V155H625V135H275V155H50V430H300');
-var chargePath = R.path('M600,405H825V180H75V405H300');
+var chargePath = R.path('M600,405H825V180H75V405H600');
+var rightSide = 825;
+var leftSide = 75;
+var top = 180;
+var bottom = 405;
 var pathLen = chargePath.getTotalLength();
 var numCharges = pathLen / ((chargeRadius*2) + 20);
 var subpath = R.path(chargePath.getSubpath(650, 1000)); //subpath within resistor
@@ -21,17 +25,30 @@ chargePath.attr({opacity:0});
 resistor.attr({fill:resColor})
 
 //creating "charges"
-var chargeDist = 10;
-var chargePos = chargePath.getPointAtLength(chargeDist);
+//var chargeDist = 10;
+//var chargePos = chargePath.getPointAtLength(chargeDist);
 charges = R.set();
 
+function charge() {
+	//chargeDist += chargeRadius + 30;
+	this.dist = charges.length * (chargeRadius * 2 + 20);
+	if (this.dist >= pathLen) {
+		this.dist = this.dist % pathLen;	
+	}
+	var chargePos = chargePath.getPointAtLength(this.dist);
+	var c = R.circle(chargePos.x, chargePos.y, chargeRadius);
+	charges.push(c);
+}
+
 for (i = 0; i < numCharges; i++) {
-	charges.push(R.circle(chargePos.x, chargePos.y, 10));
-	chargeDist += chargeRadius + 30;
-	chargePos = chargePath.getPointAtLength(chargeDist);
+	//charges.push(R.circle(chargePos.x, chargePos.y, 10));
+	//chargeDist += chargeRadius + 30;
+	var c = new charge();
+	//chargePos = chargePath.getPointAtLength(c.dist);
 }
 
 charges.attr({fill:'yellow'});
+//console.log(parseInt(charges[2].attr('cx')));
 
 //resistor core
 var coreDist = 25;
@@ -47,17 +64,23 @@ for (i = 0; i < 5; i++) {
 cores.attr({fill:'blue'});
 
 //resistor heating
-function heatUp(elem) {
+function heat(elem) {
 	if (current > 10 && rgb[1] > 0) { //testing value
 		rgb[1]--;
-		rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
-		elem.attr({fill:rgbStr+''});
+		var rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+		elem.attr({fill:rgbStr});
+	}
+	else if (rgb[1] > 0 && rgb[1] <= 155) {
+		rgb[1] += 5;
+		var rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+		elem.attr({fill:rgbStr});
 	}
 }
 
 //Creating voltage and resistance sliders
-var resistance = new slider(R, 900, 100, 400, 50, 0.2, 10, 'Resistance');
-var voltage = new slider(R, 900, 200, 400, 50, -12, 12, 'Voltage');
+var resistance = new slider(R, 900, 100, 400, 50, 1, 10, 'Resistance');
+var voltage = new slider(R, 900, 200, 400, 50, 0, 12, 'Voltage');
+
 var current = voltage.val / resistance.val;
 
 //Recalculating current on a time interval for now
@@ -69,35 +92,92 @@ setInterval(function() {
 
 //CHANGE TO TAKE IN SET OF CHARGES AND MOVE THEM SIMULTANEOUSLY
 //animation of moving charges
-function animateCharge(elem, dist) {
-	setInterval(function() {
-		//remove elem and exit function when path is completed
-		if (chargePath.getTotalLength() <= dist) { 
-			elem.remove();
-			return; 
+function animateCharges() {
+	var curX = parseInt(charges[0].attr('cx'));
+	var nextPos = chargePath.getPointAtLength(charges[0].dist + 5);
+	var curY = parseInt(charges[0].attr('cy'));
+	console.log(curX + ', ' + curY);
+	
+	if (curX < rightSide && curY == bottom) {
+		charges[0].animate({cx:nextPos.x}, 1);
+	}
+	else if (curX >= rightSide && curY > top) {
+		charges[0].animate({cy:curY-1}, 1);
+	}
+	else if (curX > leftSide && curY == top) {
+		charges[0].animate({cx:curX-1}, 1);	
+	}
+	else if (curX == leftSide && curY > bottom) {
+		charges[0].animate({cy:curY+1}, 1);	
+	}
+	
+	for (i = 1; i < charges.length; i++) {
+		var charge = charges[i];
+		var curX = parseInt(charge.attr('cx'));
+		var curY = parseInt(charge.attr('cy'));
+		var nullAnim = Raphael.animation({});
+		
+		if (curX < rightSide && curY == bottom) {
+			charge.animateWith(charges[i-1], nullAnim, {cx:curX+1}, 1);
 		}
+		else if (curX == rightSide && curY > top) {
+			charge.animateWith(charges[i-1], nullAnim, {cy:curY-1}, 1);
+		}
+		else if (curX > leftSide && curY == top) {
+			charge.animateWith(charges[i-1], nullAnim, {cx:curX-1}, 1);	
+		}
+		else if (curX == leftSide && curY > bottom) {
+			charge.animateWith(charges[i-1], nullAnim, {cy:curY+1}, 1);	
+		}
+	} 
+
+		/*for (i in charges) {
+			var charge = charges[i];
+			console.log(charge);
+			//remove elem and exit function when path is completed
+			if (charge.dist >= (pathLen - batteryWidth)) { 
+				charge.attr({opacity:0}); 
+			}
+			var pos = chargePath.getPointAtLength(charge.dist);
+			charge.node.setAttribute('cx', pos.x);  
+			charge.node.setAttribute('cy', pos.y);
+
+			charge.dist++;
+		} */
+}
+				
+/*function animateCharges() {
+	setInterval(function() {
+		for (i in charges) {
+			var charge = charges[i];
+			
+			//remove elem and exit function when path is completed
+			if (charge.dist >= chargePath.getTotalLength()) { 
+				charge.remove();
+				return; 
+			}
 		var pos = chargePath.getPointAtLength(dist);
 		elem.attr({cx: pos.x, cy: pos.y});  
 
 		dist++; 
-	}, 100/current); //NOT WORKING
-}
+	}, 100); //NOT WORKING
+}*/
 
 //TO DO: MODIFY SO THAT INTERVAL IS BASED ON CURRENT
 function runBattery() {
-	var newCharge = R.circle(600,405,10); 
-	var dist = 0; //dist starts at 0 for each new element
+	//var newCharge = R.circle(600,405,10); 
+	//var dist = 0; //dist starts at 0 for each new element
 	setInterval(function() {
 		//newCharge = R.circle(600,405,10); 
-		console.log(current)
+		//console.log(current)
 		//animateCharge(newCharge, dist);
-		heatUp(resistor);
-		console.log(resistor.attr('fill')) 
-		//fill is updating properly, but only displaying gray
-		//issue is string and int parsing
-	}, 500);
+		animateCharges();
+		console.log(current);
+		heat(resistor);
+		//console.log(resistor.attr('fill')) 
+	}, 10);
 }
 
 //test run battery
-runBattery();
+//runBattery();
 
