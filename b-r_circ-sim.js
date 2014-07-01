@@ -8,7 +8,8 @@ var resistor = R.rect(275,135,350,90);
 var chargeRadius = 10;
 var resColor = 'rgb(255,155,0)';
 var rgb = resColor.match(/\d+/g);
-console.log(rgb)
+var rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+console.log(rgbStr);
 var innerPath = R.path('M600,380H800V205H625V225H275V205H100V380H300');
 var outerPath = R.path('M600,430H850V155H625V135H275V155H50V430H300');
 var chargePath = R.path('M600,405H825V180H75V405H300');
@@ -49,7 +50,8 @@ cores.attr({fill:'blue'});
 function heatUp(elem) {
 	if (current > 10 && rgb[1] > 0) { //testing value
 		rgb[1]--;
-		elem.attr({fill:rgb});
+		rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+		elem.attr({fill:rgbStr+''});
 	}
 }
 
