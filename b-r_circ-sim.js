@@ -1,26 +1,27 @@
 //MAGIC NUMBERS EVERYWHERE!
 //TO DO: GET RID OF MAGIC NUMBERS!
-var R = Raphael(0,0,1500,1500); //Raphael canvas
+var circ = Raphael(0,0,900,1500); //circuit canvas
+var graph = Raphael(900,0,200,200); //graph canvas
 
 //circuit skeleton
 var battWidth = 300;
 var battLeft = 290;
 var battRight = 610;
-var battery = R.rect(300,350,300,125);
-var resistor = R.rect(300,135,300,90); 
+var battery = circ.rect(300,350,300,125);
+var resistor = circ.rect(300,135,300,90); 
 var chargeRadius = 10;
 var resColor = 'rgb(255,155,0)';
 var rgb = resColor.match(/\d+/g); //regex, returns array of values of r, g, b
-var innerPath = R.path('M600,380H800V205H600V225H300V205H100V380H300');
-var outerPath = R.path('M600,430H850V155H600V135H300V155H50V430H300');
-var chargePath = R.path('M600,405H825V180H75V405H600');
+var innerPath = circ.path('M600,380H800V205H600V225H300V205H100V380H300');
+var outerPath = circ.path('M600,430H850V155H600V135H300V155H50V430H300');
+var chargePath = circ.path('M600,405H825V180H75V405H600');
 var rightSide = 825;
 var leftSide = 75;
 var top = 180;
 var bottom = 405;
 var pathLen = chargePath.getTotalLength();
 var numCharges = pathLen / ((chargeRadius*2) + 20);
-var subpath = R.path(chargePath.getSubpath(675, 975)); //subpath within resistor
+var subpath = circ.path(chargePath.getSubpath(675, 975)); //subpath within resistor
 var chargeAnimFactor = 25;
 var coreAnimFactor = 100;
 subpath.attr({opacity:0});
@@ -28,7 +29,7 @@ chargePath.attr({opacity:0});
 resistor.attr({fill:resColor})
 
 //creating "charges" with attribute .dist
-charges = R.set(); 
+charges = circ.set(); 
 function charge() {
 	this.dist = charges.length * (chargeRadius * 2 + 20);
 	
@@ -37,7 +38,7 @@ function charge() {
 	}
 	
 	var chargePos = chargePath.getPointAtLength(this.dist);
-	var c = R.circle(chargePos.x, chargePos.y, chargeRadius);
+	var c = circ.circle(chargePos.x, chargePos.y, chargeRadius);
 	charges.push(c);
 }
 
@@ -53,16 +54,16 @@ charges.attr({fill:'yellow'});
 //resistor core
 var coreDist = 37;
 corePos = subpath.getPointAtLength(coreDist);
-var cores = R.set()
+var cores = circ.set()
 
 for (i = 0; i < 4; i++) {
-	cores.push(R.circle(corePos.x, corePos.y, 10))
+	cores.push(circ.circle(corePos.x, corePos.y, 10))
 	coreDist += 75;
 	corePos = subpath.getPointAtLength(coreDist);
 }
 
 //generates random number in range (from, to)
-function rdm(from, to){
+function random(from, to){
        return Math.floor(Math.random() * (to - from + 1) + from);
 }
 
@@ -82,8 +83,8 @@ function animateCores(){
 			core.animate({cx:core.data('initcx'), cy:core.data('initcy')}, coreAnimFactor);
 		}
 		else {
-			var newcx = core.data('initcx') + rdm(-coreBound, coreBound);
-			var newcy = core.data('initcy') + rdm(-coreBound, coreBound);
+			var newcx = core.data('initcx') + random(-coreBound, coreBound);
+			var newcy = core.data('initcy') + random(-coreBound, coreBound);
 			core.animate({cx:newcx, cy:newcy}, coreAnimFactor);	
 		}
 	}
@@ -93,7 +94,7 @@ cores.attr({fill:'blue'});
 
 //resistor "heating" as color change
 //reddens resistor if current is too high
-function heat(elem) {
+/*function heat(elem) {
 	if (current > 10 && rgb[1] > 0) { //testing value
 		rgb[1]--;
 		var rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
@@ -104,11 +105,11 @@ function heat(elem) {
 		var rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
 		elem.attr({fill:rgbStr});
 	}
-}
+}*/
 
 //Creating voltage and resistance sliders
-var resistance = new slider(R, 100, 50, 300, 50, 1, 100, 'Resistance');
-var voltage = new slider(R, 500, 50, 300, 50, 0, 15, 'Voltage');
+var resistance = new slider(circ, 100, 50, 300, 50, 1, 50, 'Resistance');
+var voltage = new slider(circ, 500, 50, 300, 50, 0, 12, 'Voltage');
 
 var current = voltage.val / resistance.val;
 var moveFactor = current / 1.5; 
@@ -146,7 +147,7 @@ function animateCharges() {
 	
 	for (i = 1; i < numCharges; i++) {
 		var nextPos = chargePath.getPointAtLength(dist[i]+moveFactor);
-		if ((dist[i]+moveFactor) > pathLen) {
+		if (dist[i]+moveFactor > pathLen) {
 			var d = (dist[i]+moveFactor) % pathLen;
 			nextPos = chargePath.getPointAtLength(d);	
 		}
@@ -163,10 +164,19 @@ function animateCharges() {
 	}
 }
 
+//I-V graph
+function drawGraph() {
+	var slope = 1 / resistance.val;
+	var yInt = 0;
+	//console.log('draw')
+	drawLine(graph, slope, yInt);
+}
+
 //TO DO: MODIFY SO THAT INTERVAL IS BASED ON CURRENT
 function runBattery() {
 	setInterval(animateCharges, chargeAnimFactor);
 	setInterval(animateCores, coreAnimFactor);
+	setInterval(drawGraph, 100);
 }
 
 //test run battery
