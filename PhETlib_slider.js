@@ -40,10 +40,23 @@ function slider(canvas, x, y, w, h, minVal, maxVal, label) {
 	handle.drag(function(dx,dy,mx,my) { //on move
 		var newX = Math.min(bodyX + w - handleW, mx);
 		newX = Math.max(bodyX, newX);
+		console.log(mx)
 		this.attr({x:newX}) 
 		updateDisplay();
 	}, 
 			function() {}, //on start
 			function() {} //on end
+	);
+	
+	//clicks on slider body bring slider bar to click position
+	body.drag(function(dx,dy,mx,my) { 
+		var newX = Math.min(bodyX + w - handleW, mx);
+		newX = Math.max(bodyX, newX);
+		handle.attr({x:newX}) 
+		updateDisplay();
+		console.log('click')
+	}, 
+			  function() {},
+			  function() {} 
 	);
 }

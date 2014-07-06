@@ -1,27 +1,27 @@
 //MAGIC NUMBERS EVERYWHERE!
 //TO DO: GET RID OF MAGIC NUMBERS!
-var circ = Raphael(0,0,900,1500); //circuit canvas
-var graph = Raphael(900,0,200,200); //graph canvas
+var circuit = Raphael(0,0,535,600); //circuit canvas
+var graph = Raphael(535,250,200,200); //graph canvas
 
 //circuit skeleton
 var battWidth = 300;
-var battLeft = 290;
-var battRight = 610;
-var battery = circ.rect(300,350,300,125);
-var resistor = circ.rect(300,135,300,90); 
+var battLeft = 110;
+var battRight = 430;
+var battery = circuit.rect(120,350,300,125);
+var resistor = circuit.rect(120,135,300,90); 
 var chargeRadius = 10;
 var resColor = 'rgb(255,155,0)';
 var rgb = resColor.match(/\d+/g); //regex, returns array of values of r, g, b
-var innerPath = circ.path('M600,380H800V205H600V225H300V205H100V380H300');
-var outerPath = circ.path('M600,430H850V155H600V135H300V155H50V430H300');
-var chargePath = circ.path('M600,405H825V180H75V405H600');
+var innerPath = circuit.path('M420,380H470V205H420V225H120V205H70V380H120');
+var outerPath = circuit.path('M420,430H520V155H420V135H120V155H20V430H120');
+var chargePath = circuit.path('M420,405H495V180H45V405H420');
 var rightSide = 825;
 var leftSide = 75;
 var top = 180;
 var bottom = 405;
 var pathLen = chargePath.getTotalLength();
 var numCharges = pathLen / ((chargeRadius*2) + 20);
-var subpath = circ.path(chargePath.getSubpath(675, 975)); //subpath within resistor
+var subpath = circuit.path(chargePath.getSubpath(375, 675)); //subpath within resistor
 var chargeAnimFactor = 25;
 var coreAnimFactor = 100;
 subpath.attr({opacity:0});
@@ -29,7 +29,7 @@ chargePath.attr({opacity:0});
 resistor.attr({fill:resColor})
 
 //creating "charges" with attribute .dist
-charges = circ.set(); 
+charges = circuit.set(); 
 function charge() {
 	this.dist = charges.length * (chargeRadius * 2 + 20);
 	
@@ -38,7 +38,7 @@ function charge() {
 	}
 	
 	var chargePos = chargePath.getPointAtLength(this.dist);
-	var c = circ.circle(chargePos.x, chargePos.y, chargeRadius);
+	var c = circuit.circle(chargePos.x, chargePos.y, chargeRadius);
 	charges.push(c);
 }
 
@@ -54,10 +54,10 @@ charges.attr({fill:'yellow'});
 //resistor core
 var coreDist = 37;
 corePos = subpath.getPointAtLength(coreDist);
-var cores = circ.set()
+var cores = circuit.set()
 
 for (i = 0; i < 4; i++) {
-	cores.push(circ.circle(corePos.x, corePos.y, 10))
+	cores.push(circuit.circle(corePos.x, corePos.y, 10))
 	coreDist += 75;
 	corePos = subpath.getPointAtLength(coreDist);
 }
@@ -108,8 +108,8 @@ cores.attr({fill:'blue'});
 }*/
 
 //Creating voltage and resistance sliders
-var resistance = new slider(circ, 100, 50, 300, 50, 1, 50, 'Resistance');
-var voltage = new slider(circ, 500, 50, 300, 50, 0, 12, 'Voltage');
+var resistance = new slider(circuit, 10, 50, 250, 50, 1, 50, 'Resistance');
+var voltage = new slider(circuit, 280, 50, 250, 50, 0, 12, 'Voltage');
 
 var current = voltage.val / resistance.val;
 var moveFactor = current / 1.5; 
@@ -118,7 +118,7 @@ var moveFactor = current / 1.5;
 //TO DO: REVISIT TO GET THIS WORKING ON CLICK/DRAG
 setInterval(function() {
 	current = voltage.val / resistance.val;
-	moveFactor = current;
+	moveFactor = current / 1.5;
 	cores.attr({r:(resistance.val / 8) + 10});
 	if (current != 0) {
 		chargeAnimFactor = 100 / current;
