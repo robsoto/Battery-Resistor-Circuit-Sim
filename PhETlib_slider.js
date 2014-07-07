@@ -15,6 +15,7 @@ function slider(canvas, x, y, w, h, minVal, maxVal, label) {
 	self.maxVal = roundTo3(maxVal);
 	self.handle = handle;
 	var disp = canvas.text((x + (w/2)), (y - 10), label + ': ' + self.val);
+	//disp.attr('font-family', 'Courier');
 	body.attr({fill:'white'});
 	handle.attr({fill:'gray'});
 	body.node.className = 'slider';
