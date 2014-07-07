@@ -38,7 +38,7 @@ resistor.attr({fill:resColor})
 //creating "charges" with attribute .dist
 charges = circuit.set(); 
 function charge() {
-	this.dist = charges.length * (chargeRadius * 2 + 20);
+	this.dist = charges.length * (chargeRadius * 2 + 21);
 	
 	if (this.dist > pathLen) { //keep dist in range (0,pathlen]
 		this.dist = this.dist % pathLen;	
@@ -126,7 +126,7 @@ var moveFactor = current;
 setInterval(function() {
 	current = voltage.val / resistance.val;
 	moveFactor = current / 1.5;
-	cores.attr({r:(resistance.val / 8) + 10});
+	cores.attr({r:(resistance.val / 5) + 10});
 	if (current != 0) {
 		chargeAnimFactor = 100 / current;
 	}
@@ -147,7 +147,9 @@ function animateCharges() {
 			charges[0].attr({opacity:0});	
 		}
 		else { 
-			charges[0].attr({opacity:1});	
+			if (charges[0].attr('opacity') == 0) {
+				charges[0].attr({opacity:1});	
+			}
 		}
 
 		dist[0] += moveFactor;
@@ -167,11 +169,15 @@ function animateCharges() {
 				charges[i].attr({opacity:0});	
 			}
 			else { 
-				charges[i].attr({opacity:1});
+				if (charges[i].attr('opacity') == 0) {
+					charges[i].attr({opacity:1});	
+				}
 			}
 		}
 	}
-	else {
+	
+	//reverse animation - not currently working
+	/*else {
 		var nullAnim = Raphael.animation({});
 		var finalDist = dist[dist.length];
 		var nextPos = chargePath.getPointAtLength(finalDist-moveFactor);
@@ -207,7 +213,7 @@ function animateCharges() {
 				charges[i].attr({opacity:1});	
 			}
 		}
-	}	
+	}*/	
 }
 
 //I-V graph

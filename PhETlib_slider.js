@@ -37,7 +37,6 @@ function slider(canvas, x, y, w, h, minVal, maxVal, label) {
 	handle.drag(function(dx,dy,mx,my) { //on move
 		var newX = Math.min(bodyX + w - handleW, mx);
 		newX = Math.max(bodyX, newX);
-		console.log(mx)
 		this.attr({x:newX}) 
 		updateDisplay();
 	}, 
