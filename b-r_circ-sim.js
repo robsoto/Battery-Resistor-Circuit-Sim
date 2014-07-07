@@ -28,7 +28,6 @@ var top = 180;
 var bottom = 405;
 var pathLen = chargePath.getTotalLength();
 var numCharges = parseInt(pathLen / ((chargeRadius*2) + 20));
-console.log(numCharges)
 var subpath = circuit.path(chargePath.getSubpath(375, 675)); //subpath within resistor
 var chargeAnimFactor = 25;
 var coreAnimFactor = 100;
@@ -117,7 +116,7 @@ cores.attr({fill:'blue'});
 
 //Creating voltage and resistance sliders
 var resistance = new slider(circuit, 10, 50, 250, 50, 1, 50, 'Resistance');
-var voltage = new slider(circuit, 280, 50, 250, 50, -12, 12, 'Voltage');
+var voltage = new slider(circuit, 280, 50, 250, 50, 0, 12, 'Voltage');
 
 var current = voltage.val / resistance.val;
 var moveFactor = current; 
@@ -228,7 +227,11 @@ function updateDisplays() {
 		voltageDisp.attr('x', 170);	
 	}
 }
- 
+
+//label graph axes
+graph.text(110, 10, 'I').attr({'font-family':'Courier', 'font-size':18, 'font-weight':'bold', 'fill':'blue'});
+
+graph.text(190, 110, 'V').attr({'font-family':'Courier', 'font-size':18, 'font-weight':'bold', 'fill':'blue'});
 
 function runBattery() {
 	setInterval(animateCharges, chargeAnimFactor);

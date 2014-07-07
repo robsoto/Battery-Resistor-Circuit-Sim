@@ -11,11 +11,9 @@ function slider(canvas, x, y, w, h, minVal, maxVal, label) {
 	var handleW = handle.attr('width');
 	var self = this;
 	self.val = roundTo3(minVal); //initial value to be changed when dragged
-	//self.valFraction = 0; 
 	self.maxVal = roundTo3(maxVal);
 	self.handle = handle;
 	var disp = canvas.text((x + (w/2)), (y - 10), label + ': ' + self.val);
-	//disp.attr('font-family', 'Courier');
 	body.attr({fill:'white'});
 	handle.attr({fill:'gray'});
 	body.node.className = 'slider';
@@ -33,8 +31,6 @@ function slider(canvas, x, y, w, h, minVal, maxVal, label) {
 			self.val = roundTo3(maxVal);	
 		}
 		disp.attr('text', label + ': ' +self.val);
-		//valFraction = (self.val - minVal) / (maxVal - minVal);
-		//self.valFraction = roundTo3(valFraction);
 	}
 	
 	//move slider bar with mouse
@@ -55,7 +51,6 @@ function slider(canvas, x, y, w, h, minVal, maxVal, label) {
 		newX = Math.max(bodyX, newX);
 		handle.attr({x:newX}) 
 		updateDisplay();
-		console.log('click')
 	}, 
 			  function() {},
 			  function() {} 
