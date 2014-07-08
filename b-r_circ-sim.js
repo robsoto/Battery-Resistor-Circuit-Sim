@@ -1,34 +1,32 @@
-//MAGIC NUMBERS EVERYWHERE!
-//TO DO: GET RID OF MAGIC NUMBERS!
-var circuit = Raphael(0,0,535,600); //circuit canvas
-var graph = Raphael(535,250,200,200); //graph canvas
+var circuit = Raphael(0,0,465,700); //circuit canvas
+var graph = Raphael(465,110,200,200); //graph canvas
 
 //circuit skeleton
 var battWidth = 300;
-var battLeft = 110;
-var battRight = 430;
-var battery = circuit.rect(120,350,300,125);
-battery.attr('fill', 'gray');
-var batteryLabel = circuit.rect(120,350,100,125);
-batteryLabel.attr('fill', 'black');
-var resistor = circuit.rect(120,135,300,90); 
-var currentDisp = circuit.text(275, 300, 'I = ' + roundTo3(0) + ' Ohms');
+var battLeft = 80;
+var battRight = 400;
+var battery = circuit.rect(90,270,300,125);
+//battery.attr('fill', 'gray');
+var batteryLabel = circuit.rect(90,270,100,125);
+//batteryLabel.attr('fill', 'black');
+var resistor = circuit.rect(90,60,300,90); 
+var currentDisp = circuit.text(240, 210, 'I = ' + roundTo3(0) + ' Amps');
 currentDisp.attr({fill:'red', 'font-size':24, 'font-family':'Courier'});
-var voltageDisp = circuit.text(170,360, roundTo3(0) + ' V');
+var voltageDisp = circuit.text(140,280, roundTo3(0) + ' V');
 voltageDisp.attr({fill:'blue', 'font-size':18, 'font-family':'Courier', 'font-weight':'bold'});
 var chargeRadius = 10;
 var resColor = 'rgb(255,155,0)';
 var rgb = resColor.match(/\d+/g); //regex, returns array of values of r, g, b
-var innerPath = circuit.path('M420,380H470V205H420V225H120V205H70V380H120');
-var outerPath = circuit.path('M420,430H520V155H420V135H120V155H20V430H120');
-var chargePath = circuit.path('M420,405H495V180H45V405H420');
+var innerPath = circuit.path('M390,300H410V130H390V150H90V130H70V300H90');
+var outerPath = circuit.path('M390,350H460V80H390V60H90V80H20V350H90');
+var chargePath = circuit.path('M390,325H435V105H45V325H390');
 var rightSide = 825;
 var leftSide = 75;
 var top = 180;
 var bottom = 405;
 var pathLen = chargePath.getTotalLength();
 var numCharges = parseInt(pathLen / ((chargeRadius*2) + 20));
-var subpath = circuit.path(chargePath.getSubpath(375, 675)); //subpath within resistor
+var subpath = circuit.path(chargePath.getSubpath(310, 610)); //subpath within resistor
 var chargeAnimFactor = 25;
 var coreAnimFactor = 100;
 subpath.attr({opacity:0});
@@ -70,7 +68,7 @@ for (i = 0; i < 4; i++) {
 }
 
 //generates random number in range (from, to)
-function random(from, to){
+function random(from, to) {
        return Math.floor(Math.random() * (to - from + 1) + from);
 }
 
@@ -97,7 +95,7 @@ function animateCores(){
 	}
 }
 
-cores.attr({fill:'blue'});
+cores.attr({fill:'red'});
 
 //resistor "heating" as color change
 //reddens resistor if current is too high
@@ -115,8 +113,8 @@ cores.attr({fill:'blue'});
 }*/
 
 //Creating voltage and resistance sliders
-var resistance = new slider(circuit, 10, 50, 250, 50, 1, 50, 'Resistance');
-var voltage = new slider(circuit, 280, 50, 250, 50, 0, 12, 'Voltage');
+var resistance = new slider(circuit, 120, 20, 250, 30, 0.5, 10, 'Resistance');
+var voltage = new slider(circuit, 120, 420, 250, 30, 0, 10, 'Voltage');
 
 var current = voltage.val / resistance.val;
 var moveFactor = current; 
@@ -125,10 +123,13 @@ var moveFactor = current;
 //TO DO: REVISIT TO GET THIS WORKING ON CLICK/DRAG
 setInterval(function() {
 	current = voltage.val / resistance.val;
-	moveFactor = current / 1.5;
-	cores.attr({r:(resistance.val / 5) + 10});
+	moveFactor = current;
+	cores.attr({r:(10 + parseFloat(resistance.val))});
 	if (current != 0) {
-		chargeAnimFactor = 100 / current;
+		moveFactor += 1.5;
+		chargeAnimFactor = 25 / current;
+		coreBound = current / 2.5;
+		coreAnimFactor = 100 / current;
 	}
 }, 100);
 
@@ -136,8 +137,12 @@ setInterval(function() {
 //animation of moving charges
 function animateCharges() {
 	if (voltage.val >= 0) {	
+		//animating initial charge in order to animate following charges together with this one
 		var nullAnim = Raphael.animation({});
 		var nextPos = chargePath.getPointAtLength(dist[0]+moveFactor);
+		//var curPos = chargePath.getPointAtLength(dist[0]);
+		//var curX = charges[0].attr('x');
+		//console.log(curPos.x)
 		if ((dist[0]+moveFactor) > pathLen) {
 			var d = (dist[0]+moveFactor) % pathLen;
 			nextPos = chargePath.getPointAtLength(d);	
@@ -148,6 +153,7 @@ function animateCharges() {
 		}
 		else { 
 			if (charges[0].attr('opacity') == 0) {
+				console.log('on')
 				charges[0].attr({opacity:1});	
 			}
 		}
@@ -157,6 +163,7 @@ function animateCharges() {
 
 		for (i = 1; i < numCharges; i++) {
 			var nextPos = chargePath.getPointAtLength(dist[i]+moveFactor);
+			var curPos = chargePath.getPointAtLength(dist[0]);
 			if (dist[i]+moveFactor > pathLen) {
 				var d = (dist[i]+moveFactor) % pathLen;
 				nextPos = chargePath.getPointAtLength(d);	
@@ -176,10 +183,9 @@ function animateCharges() {
 		}
 	}
 	
-	//reverse animation - not currently working
-	/*else {
+	else if (voltage.val < 0) { //reverse animation for negative voltage
 		var nullAnim = Raphael.animation({});
-		var finalDist = dist[dist.length];
+		var finalDist = dist[dist.length-1];
 		var nextPos = chargePath.getPointAtLength(finalDist-moveFactor);
 		if ((finalDist - moveFactor) < 0) {
 			var d = pathLen + (finalDist - moveFactor);
@@ -196,10 +202,10 @@ function animateCharges() {
 		finalDist -= moveFactor;
 		charges[numCharges-1].animate({cx:nextPos.x, cy:nextPos.y}, chargeAnimFactor);
 
-		for (i = (numCharges - 1); i >= 0; i--) {
+		for (i = (numCharges - 2); i >= 0; i--) {
 			var nextPos = chargePath.getPointAtLength(dist[i]-moveFactor);
 			if (dist[i]-moveFactor < 0) {
-				var d = pathLen + (finalDist - moveFactor);
+				var d = pathLen + (dist[i] - moveFactor);
 				nextPos = chargePath.getPointAtLength(d);	
 			}
 			var charge = charges[i];
@@ -213,29 +219,28 @@ function animateCharges() {
 				charges[i].attr({opacity:1});	
 			}
 		}
-	}*/	
+	}
 }
 
-//I-V graph
 function updateDisplays() {
 	var slope = 1 / resistance.val;
 	var yInt = 0;
 	//console.log('draw')
 	drawLine(graph, slope, yInt);
-	currentDisp.attr('text', 'I = ' + roundTo3(current) + ' Ohms');
+	currentDisp.attr('text', 'I = ' + roundTo3(current) + ' Amps');
 	voltageDisp.attr('text', roundTo3(voltage.val) + ' V');
 	if (voltage.val < 0) {
 		batteryLabel.attr('x', 320);
 		voltageDisp.attr('x', 370);
 	}
 	else {
-		batteryLabel.attr('x', 120);
-		voltageDisp.attr('x', 170);	
+		batteryLabel.attr('x', 90);
+		voltageDisp.attr('x', 140);	
 	}
 }
 
 //label graph axes
-graph.text(110, 10, 'I').attr({'font-family':'Courier', 'font-size':18, 'font-weight':'bold', 'fill':'blue'});
+graph.text(90, 10, 'I').attr({'font-family':'Courier', 'font-size':18, 'font-weight':'bold', 'fill':'blue'});
 
 graph.text(190, 110, 'V').attr({'font-family':'Courier', 'font-size':18, 'font-weight':'bold', 'fill':'blue'});
 
