@@ -55,6 +55,13 @@ function slider(canvas, x, y, w, h, minVal, maxVal, label) {
 			  function() {} 
 	);
 	
+	body.click(function(event) {
+		var newX = Math.min(bodyX + w - handleW, event.clientX);
+		newX = Math.max(bodyX, newX);
+		handle.attr({x:newX}) 
+		updateDisplay();	
+	});
+	
 	//change cursor on mouseover
 	body.attr('cursor', 'pointer');
 	handle.attr('cursor', 'pointer');
