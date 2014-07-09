@@ -1,33 +1,50 @@
 var circuit = Raphael(0,0,465,450); //circuit canvas
 var graph = Raphael(465,110,200,200); //graph canvas
 
-//circuit skeleton
+//circuit skeleton and variable initialization
 var battWidth = 300;
 var battLeft = 80;
 var battRight = 400;
-var battery = circuit.rect(90,270,300,125);
-var batteryLabel = circuit.rect(90,270,100,125);
+var battery = circuit.rect(100,270,290,125);
+var batteryLabel = circuit.rect(100,270,100,125);
+var batteryNub = circuit.rect(90,310,10,30); 
 var resistor = circuit.rect(90,60,300,90,20); 
+var vMaxVal = 10;
+var vMinVal = 0;
+var graphHeight = 200;
+var graphWidth = 200;
 var currentDisp = circuit.text(240, 210, 'I = ' + roundTo3(0) + ' Amps');
-var voltageDisp = circuit.text(140,280, roundTo3(0) + ' V');
+var voltageDisp = circuit.text(150,280, roundTo3(0) + ' V');
+var slopeDisp = graph.text(50,50,'');
 var chargeRadius = 10;
 var resColor = 'rgb(255,155,0)';
 var rgb = resColor.match(/\d+/g); //regex, returns array of values of r, g, b
 var innerRPath = circuit.path('M390,300H410V130H390');
-var innerLPath = circuit.path('M90,130H70V300H90');
+var innerLPath = circuit.path('M90,130H70V300H100');
 var outerRPath = circuit.path('M390,350H460V80H390');
-var outerLPath = circuit.path('M90,80H20V350H90');
-var chargePath = circuit.path('M390,325H435V105H45V325H390');
+var outerLPath = circuit.path('M90,80H20V350H100');
+var chargePath = circuit.path('M390,325H435V105H45V325z');
 var rightSide = 825;
 var leftSide = 75;
-var top = 180;
-var bottom = 405;
+var top = 105;
+var bottom = 325;
 var pathLen = chargePath.getTotalLength();
 var numCharges = parseInt(pathLen / ((chargeRadius*2) + 20));
 var subpath = circuit.path(chargePath.getSubpath(310, 610)); //charge subpath within resistor
 var chargeAnimFactor = 25;
 var coreAnimFactor = 80;
 var coreBound = 0; //range of motion for cores
+var vLine = graph.path('');
+var slope = 0;
+var yInt = 0;
+var vLineX = 0;
+var vLineY = graphHeight / 2;
+var vLineH = 0;
+
+//Creating voltage and resistance sliders
+var resistance = new slider(circuit, 120, 20, 250, 30, 0.5, 10, 'Resistance');
+var voltage = new slider(circuit, 120, 415, 250, 30, 0, 10, 'Voltage');
+var current = voltage.val / resistance.val;
 
 //creating "charges" with attribute .dist
 charges = circuit.set(); 
@@ -87,11 +104,6 @@ function animateCores(){
 	}
 }
 
-//Creating voltage and resistance sliders
-var resistance = new slider(circuit, 120, 20, 250, 30, 0.5, 10, 'Resistance');
-var voltage = new slider(circuit, 120, 415, 250, 30, 0, 10, 'Voltage');
-var current = voltage.val / resistance.val;
-
 //animation factor settings
 var moveFactor = current; 
 setInterval(function() {
@@ -116,10 +128,7 @@ function animateCharges() {
 		following charges together with this one*/
 		var nullAnim = Raphael.animation({});
 		var nextPos = chargePath.getPointAtLength(dist[0]+moveFactor);
-		//console.log(nextPos)
 		var curPos = chargePath.getPointAtLength(dist[0]);
-		//var curX = charges[0].attr('x');
-		//console.log(curPos.x)
 		if ((dist[0]+moveFactor) > pathLen) {
 			var d = (dist[0]+moveFactor) % pathLen;
 			nextPos = chargePath.getPointAtLength(d);	
@@ -195,11 +204,7 @@ function animateCharges() {
 	/*else if (voltage.val < 0) { //reverse animation for negative voltage
 		var nullAnim = Raphael.animation({});
 		var finalDist = dist[dist.length-1];
-		//console.log(finalDist)
-		//console.log(moveFactor)
-		//console.log(voltage.val)
 		var nextPos = chargePath.getPointAtLength(finalDist+moveFactor);
-		//console.log(nextPos)
 		if ((finalDist - moveFactor) < 0) {
 			var d = pathLen + (finalDist + moveFactor);
 			nextPos = chargePath.getPointAtLength(d);	
@@ -215,10 +220,9 @@ function animateCharges() {
 		}
 
 		finalDist += moveFactor;
-		//console.log(finalDist)
 		charges[numCharges-1].animate({cx:nextPos.x, cy:nextPos.y}, chargeAnimFactor);
 
-		/*for (i = (numCharges - 2); i >= 0; i--) {
+		for (i = (numCharges - 2); i >= 0; i--) {
 			var nextPos = chargePath.getPointAtLength(dist[i]-moveFactor);
 			if (dist[i]-moveFactor < 0) {
 				var d = pathLen + (dist[i] - moveFactor);
@@ -239,19 +243,17 @@ function animateCharges() {
 }
 
 function updateDisplays() {
-	var slope = 1 / resistance.val;
-	var yInt = 0;
+	slope = 1 / resistance.val;
+	yInt = 0;
 	drawLine(graph, slope, yInt);
 	currentDisp.attr('text', 'I = ' + roundTo3(current) + ' Amps');
 	voltageDisp.attr('text', roundTo3(voltage.val) + ' V');
-	if (voltage.val < 0) {
-		batteryLabel.attr('x', 290);
-		voltageDisp.attr('x', 340);
-	}
-	else {
-		batteryLabel.attr('x', 90);
-		voltageDisp.attr('x', 140);	
-	}
+	vLineX = (graphWidth / 2) + (voltage.val / vMaxVal * graphWidth / 2);
+	vLineH = vLineY - ((vLineX - (graphWidth/2)) * slope);
+	vLine.remove();
+	vLine = graph.path('M' + vLineX + ',' + vLineY + 'V' + vLineH)
+				 .attr('stroke-dasharray', '-');
+	slopeDisp.attr({text:'Slope = ' + roundTo3(slope), fill:'red', 'font-family':'Courier', 'font-size':12});
 }
 
 //visual changes
@@ -262,9 +264,10 @@ charges.attr({fill:'yellow'});
 cores.attr({fill:'red'});
 battery.attr('fill', 'gray');
 batteryLabel.attr('fill', 'black');
+batteryNub.attr('fill', 'gray');
 resistor.attr('fill', resColor);
 currentDisp.attr({fill:'red', 'font-size':24, 'font-family':'Courier'});
-voltageDisp.attr({fill:'blue', 'font-size':18, 'font-family':'Courier', 'font-weight':'bold'});
+voltageDisp.attr({fill:'rgb(64,128,255)', 'font-size':18, 'font-family':'Courier', 'font-weight':'bold'});
 subpath.attr('opacity', 0);
 chargePath.attr('opacity', 0); 
 
