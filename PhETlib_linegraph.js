@@ -1,29 +1,22 @@
 /* Makes a coordinate plane with x from -X_MAX to X_MAX, y from -Y_MAX to Y_MAX, and RES pixels per integer increment */
 
-//var GRAPH_SLIDER_MARGIN = 20;
-//var MARGIN = 20;
-// var SLOPE_MAX = 60;
+/* Credit to Ray Hua Wu (github.com/ylx) for writing this code. I made some changes to fit this project */
+
 var plottedLine = null;
 
 function drawLine(lineCanvas,slope,yintercept){
 	if (plottedLine != null) {
 		plottedLine.remove();	
 	}
-	//console.log('drawing')
+
 	var X_MAX = 100;
 	var X_MIN = -X_MAX;
 	var Y_MAX = 100;
 	var Y_MIN = -Y_MAX;
-	//var RES = 12;
 	var R_WIDTH = X_MAX-X_MIN;
 	var R_HEIGHT = Y_MAX-Y_MIN;
-	//lineCanvas = Raphael(0,0,R_WIDTH,R_HEIGHT);
 	var X_AXIS = lineCanvas.path("M0 "+R_HEIGHT/2+"L"+R_WIDTH+" "+R_HEIGHT/2);
-	//X_AXIS.translate(0.5,0.5);
 	var Y_AXIS = lineCanvas.path("M"+R_WIDTH/2+" 0L"+R_WIDTH/2+" "+R_HEIGHT);
-	//var plottedLine = lineCanvas.path("");
-	//lineCanvas.remove();
-	//lineCanvas = Raphael(0,0,R_WIDTH,R_HEIGHT);
 	var X_AXIS = lineCanvas.path("M0 "+R_HEIGHT/2+"L"+R_WIDTH+" "+R_HEIGHT/2);
 	var Y_AXIS = lineCanvas.path("M"+R_WIDTH/2+" 0L"+R_WIDTH/2+" "+R_HEIGHT);
 	var a = parseFloat(slope); // slope
@@ -63,7 +56,6 @@ function drawLine(lineCanvas,slope,yintercept){
 		var point2 = [X_MAX , y_when_x_is_MAX];
 		}
 		}
-		
 		
 		/* Takes a point in (x,y) coordinates and converts to Raphael canvas coordinates */
 		function pointToPathNotation(point){
