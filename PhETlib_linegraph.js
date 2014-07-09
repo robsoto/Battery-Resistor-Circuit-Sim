@@ -1,6 +1,6 @@
 /* Makes a coordinate plane with x from -X_MAX to X_MAX, y from -Y_MAX to Y_MAX, and RES pixels per integer increment */
 
-/* Credit to Ray Hua Wu (github.com/ylx) for writing this code. I made some changes to fit this project */
+/* Credit to Ray Hua Wu (github.com/ylx) for writing this code. I adjusted the structure of the code to fit this project */
 
 var plottedLine = null;
 
